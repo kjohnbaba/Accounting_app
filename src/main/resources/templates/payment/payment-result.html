@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:replace="fragments/head :: header"></head>
+
+<body>
+<div class="dashboard-main-wrapper">
+  <div th:replace="fragments/header :: header"></div>
+  <div th:replace="fragments/left-sidebar :: left-sidebar"></div>
+  <div class="dashboard-wrapper">
+    <div class="dashboard-ecommerce">
+      <div class="container-fluid dashboard-content">
+        <div class="ecommerce-widget">
+          <div>
+            <h3 style='color: green;'>Payment is successful:</h3>
+            <div>Charge id : <span th:text='${chargeId}' /></div>
+            <div>Description : <span th:text='${description}' /></div>
+          </div>
+          <a th:href="@{/payments/list}">Membership Payment</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div th:replace="fragments/footer :: footer"></div>
+<div th:replace="fragments/javascript :: js"></div>
+</body>
+
+</html>
