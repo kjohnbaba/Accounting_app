@@ -1,6 +1,6 @@
 # Accounting Application
 
-The `Accounting Application` is a Maven-based Spring Boot application, leveraging version `2.7.7` of Spring Boot and Java `17`. It's designed to provide accounting functionalities and integrates with tools and platforms like PostgreSQL, Docker, and AWS.
+This `Accounting Application` is a Maven-based Spring Boot application, leveraging version `2.7.7` of Spring Boot and Java `17`. It's designed to provide accounting functionalities and integrates with tools and platforms like PostgreSQL, Docker, and AWS.
 
 ## Prerequisites
 
