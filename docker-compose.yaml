@@ -1,0 +1,44 @@
+version: '3.7'
+services:
+  spring-app:
+    container_name: accounting-app-demo
+    image: "cemils/project:latest"       # for windows and all mac including m1 / m2 chip
+    #    image: demo-app                     # to build and run local "demo-app" image
+    ports:
+      - "8095:8008"    # demo app tomcat runs at 8008 and container will map it to 8095. We can access to demo-app via: http://localhost:8095/
+    environment:
+      SPRING_PROFILES_ACTIVE: demo  # this feature can be used to get all config from "application-demo.properties" file instead of defining here.
+      #     config defined here has a higher priority than active profile:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5435/demo-db
+      SPRING_DATASOURCE_USERNAME: demouser
+      SPRING_DATASOURCE_PASSWORD: demopassword
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.PostgreSQLDialect"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: "create"
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
+      SPRING_SQL_INIT_MODE: "always"
+      SPRING_DEVTOOLS_ADD_PROPERTIES: "true"
+      LOGGING_LEVEL_ROOT: "INFO"
+      LOGGING_LEVEL_WEB: "WARN"
+      LOGGING_LEVEL_SQL: "ERROR"
+    depends_on:
+      - db
+    networks:
+      - demo_network
+  db:
+    container_name: db-for-demo
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: demo-db
+      POSTGRES_USER: demouser
+      POSTGRES_PASSWORD: demopassword
+    command: -p 5435 # change the port Postgres is running on, rather than remapping the exposed port
+    expose:
+      - "5435"      # Publishes 5435 to other containers but NOT to host machine
+    ports:
+      - "5433:5435" # to be able to connect to this database from the host machine (our computer) via 5433
+    networks:
+      - demo_network
+networks:
+  demo_network:
+    driver: bridge
