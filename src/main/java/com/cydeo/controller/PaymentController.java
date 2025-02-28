@@ -1,64 +1,79 @@
 package com.cydeo.controller;
 
+import com.cydeo.dto.ChargeRequest;
 import com.cydeo.dto.PaymentDto;
-import com.cydeo.dto.common.ChargeRequest;
-import com.cydeo.service.CompanyService;
 import com.cydeo.service.PaymentService;
+import com.cydeo.service.StripeService;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Charge;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 @Controller
 @RequestMapping("/payments")
 public class PaymentController {
 
-    private final PaymentService paymentService;
-    private final CompanyService companyService;
-
-    @Value("${stripe_public_key}")
+    @Value("${stripe.public-key}")
     private String stripePublicKey;
 
-    public PaymentController(PaymentService paymentService, CompanyService companyService) {
+    private final PaymentService paymentService;
+    private final StripeService stripeService;
+
+    public PaymentController(PaymentService paymentService, StripeService stripeService) {
         this.paymentService = paymentService;
-        this.companyService = companyService;
+        this.stripeService = stripeService;
     }
 
     @GetMapping("/list")
-    public String list(@RequestParam(value = "year", required = false) Integer year, Model model) {
-        int selectedYear = (year == null) ? LocalDate.now().getYear() : year;
-        model.addAttribute("payments",paymentService.getAllPaymentsByYear(selectedYear));
-        model.addAttribute("year", selectedYear);
+    public String listPayments(@RequestParam(required = false) Integer year, Model model) {
+
+        model.addAttribute("payments", paymentService.getAllPaymentsGroupedByYear());
+        Map<Integer, List<PaymentDto>> paymentsByYear = paymentService.getAllPaymentsGroupedByYear();
+
+        Set<Integer> existingYears = paymentsByYear.keySet();
+        year = existingYears.stream().findFirst().orElse(null);
+
+        List<PaymentDto> payments = paymentsByYear.getOrDefault(year, List.of());
+        model.addAttribute("years", existingYears);
+        model.addAttribute("year", year);
+        model.addAttribute("payments", payments);
         return "payment/payment-list";
     }
 
     @GetMapping("/newpayment/{id}")
-    public String checkout(@PathVariable("id") Long id, Model model) {
-        PaymentDto dto = paymentService.getPaymentById(id);
-        model.addAttribute("payment", dto);
+    public String preparePayment(@PathVariable Long id, Model model) {
+
+        PaymentDto payment = paymentService.findById(id);
+        BigDecimal amountInCents = payment.getAmount().setScale(0, RoundingMode.HALF_UP);
         model.addAttribute("stripePublicKey", stripePublicKey);
+        model.addAttribute("payment", payment);
+        model.addAttribute("amount", amountInCents.intValue());
         model.addAttribute("currency", "USD");
-        model.addAttribute("monthId", id);
         return "payment/payment-method";
     }
 
     @PostMapping("/charge/{id}")
-    public String charge(ChargeRequest chargeRequest, @PathVariable("id") Long id, Model model) throws StripeException {
-        PaymentDto dto = paymentService.charge(chargeRequest, id);
-        System.out.println(chargeRequest);
-        model.addAttribute("chargeId", dto.getCompanyStripeId());
-        model.addAttribute("description", dto.getDescription());
-        return "payment/payment-result";
-    }
-
-    @GetMapping("/toInvoice/{id}")
-    public String toInvoice(@PathVariable("id") Long id, Model model) {
-        model.addAttribute("payment", paymentService.getPaymentById(id));
-        model.addAttribute("company", companyService.getCompanyDtoByLoggedInUser());
-        return "payment/payment-invoice-print";
+    public String charge(@PathVariable Long id, @ModelAttribute ChargeRequest chargeRequest, Model model) throws StripeException {
+        try {
+            Charge charge = stripeService.charge(chargeRequest);
+            System.out.println("CHARGE REQUEST: " + chargeRequest);
+            System.out.println(charge);
+            model.addAttribute("description", charge.getDescription());
+            model.addAttribute("chargeId", charge.getId());
+            paymentService.changePaymentStatus(id);
+            return "payment/payment-result";
+        } catch (StripeException e) {
+            model.addAttribute("error", e.getMessage());
+            return "redirect:/payments/newpayment/" + id;
+        }
     }
 }

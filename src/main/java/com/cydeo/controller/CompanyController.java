@@ -1,91 +1,93 @@
 package com.cydeo.controller;
 
 import com.cydeo.dto.CompanyDto;
-import com.cydeo.service.AddressService;
+import com.cydeo.enums.CompanyStatus;
 import com.cydeo.service.CompanyService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
+import java.util.List;
 
 @Controller
 @RequestMapping("/companies")
 public class CompanyController {
 
     private final CompanyService companyService;
-    private final AddressService addressService;
 
-    public CompanyController(CompanyService companyService, AddressService addressService) {
+    public CompanyController(CompanyService companyService) {
         this.companyService = companyService;
-        this.addressService = addressService;
     }
 
     @GetMapping("/list")
     public String listAllCompanies(Model model) {
-        model.addAttribute("companies", companyService.listCompaniesByLoggedInUser());
+
+        List<CompanyDto> companies = companyService.getAllCompanies();
+        model.addAttribute("companies", companies);
+
         return "company/company-list";
+
     }
 
     @GetMapping("/create")
-    public String createCompany(Model model) {
+    public String createCompanyForm(Model model) {
         model.addAttribute("newCompany", new CompanyDto());
-        model.addAttribute("countries", addressService.getCachedCountriesDto());
         return "company/company-create";
     }
 
-
     @PostMapping("/create")
-    public String insertCompany(@Valid @ModelAttribute("newCompany") CompanyDto companyDto, BindingResult bindingResult, Model model) {
-        boolean isTitleExist = companyService.isTitleExist(companyDto);
-        if (isTitleExist) {
-            bindingResult.rejectValue("title", " ", "This title already exists.");
-        }
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("countries", addressService.getCachedCountriesDto());
+    public String createCompany(@Valid @ModelAttribute("newCompany") CompanyDto companyDto, BindingResult result) {
+        if (result.hasErrors()) {
             return "company/company-create";
         }
-        companyService.save(companyDto);
+
+        companyDto.setCompanyStatus(CompanyStatus.valueOf("ACTIVE"));
+
+        companyService.createCompany(companyDto);
         return "redirect:/companies/list";
     }
 
 
-    @GetMapping("/deactivate/{id}")
-    public String activateCompany(@PathVariable("id") Long id) {
-        companyService.deactivate(id);
-        return "redirect:/companies/list";
-    }
-
-
-    @GetMapping("/activate/{id}")
-    public String deActivateCompany(@PathVariable("id") Long id) {
-        companyService.activate(id);
-        return "redirect:/companies/list";
-    }
-
-
-    @GetMapping("update/{id}")
+    @GetMapping("/edit/{id}")
     public String editCompany(@PathVariable("id") Long id, Model model) {
-        model.addAttribute("company", companyService.findById(id));
-        model.addAttribute("countries", addressService.getCachedCountriesDto());
+        CompanyDto company = companyService.findById(id);
+        model.addAttribute("company", company);
+
         return "company/company-update";
     }
 
-    @PostMapping("update/{id}")
-    public String updateCompany(@Valid @ModelAttribute("company") CompanyDto companyDto, BindingResult bindingResult, Model model) {
-        boolean isTitleExist = companyService.isTitleExist(companyDto);
-        if (isTitleExist) {
-            bindingResult.rejectValue("title", " ", "This title already exists.");
-        }
-        if (bindingResult.hasErrors()) {
-            model.addAttribute("countries", addressService.getCachedCountriesDto());
+    @PostMapping("/update/{id}")
+    public String updateCompany(@PathVariable("id") Long id, @Valid @ModelAttribute("company") CompanyDto companyDto, BindingResult result) {
+        if (result.hasErrors()) {
             return "company/company-update";
         }
-        companyService.update(companyDto);
+        companyService.updateCompany(id, companyDto);
         return "redirect:/companies/list";
     }
+
+
+    @PostMapping("/activate/{id}")
+    public String activateCompany(@PathVariable("id") Long id) {
+        companyService.activateCompany(id);
+        return "redirect:/companies/list";
+    }
+
+    @PostMapping("/deactivate/{id}")
+    public String deactivateCompany(@PathVariable("id") Long id) {
+        companyService.deactivateCompany(id);
+        return "redirect:/companies/list";
+    }
+
+
+
+
+
+
+
+
 
 
 }
