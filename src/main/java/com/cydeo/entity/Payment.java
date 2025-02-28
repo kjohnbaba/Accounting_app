@@ -1,36 +1,31 @@
 package com.cydeo.entity;
 
-import com.cydeo.entity.common.BaseEntity;
-import com.cydeo.enums.Months;
+import com.cydeo.enums.Month;
+import com.cydeo.enums.PaymentStatus;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
-@Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
-@Table(name="payments")
-@Where(clause = "is_deleted=false")
-public class Payment extends BaseEntity implements Serializable {
+@Entity(name="payments")
+public class Payment{
 
+    @Id
+    private Long id;
+
+  @Enumerated(EnumType.STRING)
+    private Month month;
     private int year;
     private BigDecimal amount;
-    private LocalDate paymentDate;
-    private boolean isPaid;
-    private String companyStripeId;
-
     @Enumerated(EnumType.STRING)
-    private Months month;
-
-    @ManyToOne
-    private Company company;
-
-
+    private PaymentStatus status;
 }
+
+

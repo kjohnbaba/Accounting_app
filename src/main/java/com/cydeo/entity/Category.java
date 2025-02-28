@@ -1,31 +1,25 @@
 package com.cydeo.entity;
 
 import com.cydeo.entity.common.BaseEntity;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.Where;
+import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import java.util.List;
+import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
-@Entity
-@Setter
 @Getter
+@Setter
+@Entity
+@Table(name = "categories",
+        uniqueConstraints = {@UniqueConstraint(columnNames = {"description", "company_id"})})
 @NoArgsConstructor
-@Table(name = "categories")
-@Where(clause = "is_deleted=false")
 public class Category extends BaseEntity {
 
+    @NotBlank(message = "Description is a required field.")
+    @Size(min = 2, max = 100, message = "Description should have 2-100 characters long.")
+    @Column(nullable = false)
     private String description;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Company company;
-
-    @OneToMany(mappedBy = "category")
-    private List<Product> product;
-
 }

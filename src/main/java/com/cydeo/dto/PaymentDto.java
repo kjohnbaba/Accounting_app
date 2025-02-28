@@ -1,26 +1,22 @@
 package com.cydeo.dto;
 
-import com.cydeo.enums.Months;
-import lombok.*;
-import org.springframework.format.annotation.DateTimeFormat;
+import com.cydeo.enums.Month;
+import com.cydeo.enums.PaymentStatus;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
-@Builder
+
 public class PaymentDto {
+
     private Long id;
-    @DateTimeFormat(pattern = "MMMM dd, yyyy")
-    private LocalDate paymentDate;
-    private Integer year;
-    private Months month;
+    private Month month;
+    private int year;
     private BigDecimal amount;
-    private boolean isPaid;
-    private String companyStripeId;
-    private String description;
-    private CompanyDto company;
+    private PaymentStatus status;
 }

@@ -1,13 +1,13 @@
 package com.cydeo.enums;
 
-public enum CompanyStatus {
+public enum Currency {
 
-    ACTIVE("Active"),
-    PASSIVE("Passive");
+    EUR("eur"), USD("usd");
 
     private final String value;
 
-    CompanyStatus(String value) {
+
+    Currency(String value) {
         this.value = value;
     }
 
@@ -15,5 +15,5 @@ public enum CompanyStatus {
         return value;
     }
 
+    }
 
-}
