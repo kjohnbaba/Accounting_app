@@ -65,16 +65,16 @@
                                                         <tbody>
                                                         <tr th:each="payment, iStat : ${payments}">
                                                             <td th:text="${iStat.count}"></td>
-                                                            <td class="text-truncate" th:text="${payment.getMonth().value} +' '+ ${year}"></td>
+                                                            <td class="text-truncate" th:text="${payment.month.getValue()} + ' ' + ${payment.year}"></td>
                                                             <td class="text-truncate justify-content-center" th:text="'$ '+${payment.getAmount()}"></td>
                                                             <td>
                                                                 <form action="#" method="post">
-                                                                    <a  th:if="${!payment.isPaid}"
+                                                                    <a th:if="${payment.status != T(com.cydeo.enums.PaymentStatus).PAID}"
                                                                         th:href="@{/payments/newpayment/{id}(id=${payment.id})}"
                                                                         class="btn btn-success mb-2 mb-sm-0 mr-sm-2"
                                                                         type="submit" name="action" value="delete">Pay
                                                                     </a>
-                                                                    <a th:if="${payment.isPaid}"
+                                                                    <a th:if="${payment.status == T(com.cydeo.enums.PaymentStatus).PAID}"
                                                                        th:href="@{/payments/toInvoice/{id}(id=${payment.id})}"
                                                                        class="btn btn-info mb-2 mb-sm-0 mr-sm-2"
                                                                        type="submit" name="action" value="toInvoice">Invoice

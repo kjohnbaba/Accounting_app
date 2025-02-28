@@ -47,26 +47,25 @@
                                                                 <td th:text="${company.address.country}"></td>
                                                                 <td th:text="${company.companyStatus.value}"></td>
                                                                 <td class="actions">
-                                                                    <a th:href="@{/companies/update/{id}(id=${company.getId()})}"
-                                                                       type="button">
-                                                                        <button class="btn btn-primary mb-2 ml-2 mb-sm-0 mr-sm-2">
-                                                                            Edit
-                                                                        </button>
+                                                                    <a th:href="@{/companies/edit/{id}(id=${company.getId()})}" type="button">
+                                                                        <button class="btn btn-primary mb-2 ml-2 mb-sm-0 mr-sm-2">Edit</button>
                                                                     </a>
-                                                                    <a th:if="${company.getCompanyStatus().getValue() eq 'Passive'}"
-                                                                       th:href="@{/companies/activate/{id}(id=${company.getId()})}"
-                                                                       type="button">
-                                                                        <button class="btn btn-success mb-2 ml-2 mb-sm-0 mr-sm-2">
+                                                                    <form th:if="${company.getCompanyStatus().getValue() eq 'Passive'}"
+                                                                          th:action="@{/companies/activate/{id}(id=${company.getId()})}"
+                                                                          method="post"
+                                                                          style="display:inline;">
+                                                                        <button type="submit" class="btn btn-success mb-2 ml-2 mb-sm-0 mr-sm-2">
                                                                             Activate
                                                                         </button>
-                                                                    </a>
-                                                                    <a th:if="${company.getCompanyStatus().getValue() eq 'Active'}"
-                                                                       th:href="@{/companies/deactivate/{id}(id=${company.getId()})}"
-                                                                       type="button">
-                                                                        <button class="btn btn-warning mb-2 ml-2 mb-sm-0 mr-sm-2">
+                                                                    </form>
+                                                                    <form th:if="${company.getCompanyStatus().getValue() eq 'Active'}"
+                                                                          th:action="@{/companies/deactivate/{id}(id=${company.getId()})}"
+                                                                          method="post"
+                                                                          style="display:inline;">
+                                                                        <button type="submit" class="btn btn-warning mb-2 ml-2 mb-sm-0 mr-sm-2">
                                                                             Deactivate
                                                                         </button>
-                                                                    </a>
+                                                                    </form>
                                                                 </td>
                                                             </tr>
                                                             </tbody>

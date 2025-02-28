@@ -50,7 +50,7 @@
                                                                 <tr th:each="invoice,comStat : ${invoices}">
                                                                     <td th:text="${comStat.count}"></td>
                                                                     <td th:text="${invoice.invoiceNo}"></td>
-                                                                    <td th:text="${invoice.clientVendor.getClientVendorName}"></td>
+                                                                    <td th:text="${invoice.clientVendor.clientVendorName}"></td>
                                                                     <td th:text="${#temporals.format(invoice.date, 'MM/dd/yyyy')}"></td>
                                                                     <td th:text="${invoice.price}"></td>
                                                                     <td th:text="${invoice.tax}"></td>
@@ -60,7 +60,7 @@
                                                                            th:href ="@{/purchaseInvoices/update/{id}(id=${invoice.getId()})}" type="button">
                                                                             <button class="btn btn-primary mb-2 mb-sm-0 mr-sm-2">Edit</button>
                                                                         </a>
-                                                                        <a th:if="${invoice.invoiceStatus.value} == 'Awaiting Approval'"
+                                                                        <a th:if="${invoice.invoiceStatus.value == 'Awaiting Approval'}"
                                                                            th:href ="@{/purchaseInvoices/delete/{id}(id=${invoice.getId()})}" type="button">
                                                                             <button class="btn btn-danger mb-2 mb-sm-0 mr-sm-2">Delete</button>
                                                                         </a>

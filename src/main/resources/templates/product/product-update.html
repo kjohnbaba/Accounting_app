@@ -28,12 +28,12 @@
                                                             <div class="form-group">
                                                                 <div class="controls">
                                                                     <label>Category</label>
-                                                                    <select id="category" name="category"
+                                                                    <select id="category" name="category.id"
                                                                             class="form-control">
-                                                                        <option th:each="each:${categories}"
-                                                                                th:value="${each.id}"
-                                                                                th:text="${each.description}"
-                                                                                th:selected="${each.id == product.category.id}"></option>
+                                                                        <option th:each="category:${categories}"
+                                                                                th:value="${category.id}"
+                                                                                th:text="${category.description}"
+                                                                                th:selected="${category.id == product.category.id}"></option>
                                                                     </select>
                                                                     <div th:if="${#fields.hasErrors('category')}">
                                                                         <ul>

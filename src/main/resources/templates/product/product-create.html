@@ -28,7 +28,7 @@
                                                             <div class="form-group">
                                                                 <div class="controls">
                                                                     <label>Category</label>
-                                                                    <select id="category" name="category" class="custom-select">
+                                                                    <select id="category" th:field="*{category.id}" class="custom-select">
                                                                         <option th:if="${categories.size() > 1}"
                                                                                 th:value="''"
                                                                                 th:text="'Select'"></option>
@@ -89,7 +89,7 @@
                                                                     <label>Product Unit</label>
                                                                     <select class="custom-select"
                                                                             th:field="*{productUnit}">
-                                                                        <option th:if="${productUnits.size() > 1}"
+                                                                        <option th:if="${productUnits.length  > 1}"
                                                                                 th:value="''"
                                                                                 th:text="'Select'"></option>
                                                                         <option th:each="productUnit:${productUnits}"

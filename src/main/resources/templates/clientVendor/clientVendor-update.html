@@ -21,7 +21,7 @@
                                         <div class="tab-content">
                                             <div class="tab-pane fade mt-2 show active" id="account" role="tabpanel"
                                                  aria-labelledby="account-tab">
-                                                <form th:action="@{/clientVendors/update/{id}(id=${clientVendor.getId()})}"
+                                               <form th:action="@{/clientVendors/update/{id}(id=${clientVendor.getId()})}"
                                                       th:method="post" th:object="${clientVendor}">
                                                     <div class="row">
                                                         <div class="col-12 col-md-4">
@@ -194,11 +194,13 @@
                                                             <div class="form-group">
                                                                 <div class="controls">
                                                                     <label>Country</label>
-<!--                                                                    <input type="text" th:field="*{address.country}"-->
-<!--                                                                           placeholder="Country"-->
-<!--                                                                           class="form-control">-->
-                                                                    <select th:field="*{address.country}" id="country" name="country" class="custom-select">
-                                                                        <option th:value="'United States'" th:text="'United States'"></option>
+                                                                    <!--                                                                    <input type="text" th:field="*{address.country}"-->
+                                                                    <!--                                                                           placeholder="Country"-->
+                                                                    <!--                                                                           class="form-control">-->
+                                                                    <select th:field="*{address.country}" id="country"
+                                                                            name="country" class="custom-select">
+                                                                        <option th:value="'United States'"
+                                                                                th:text="'United States'"></option>
                                                                         <option th:each="country:${countries}"
                                                                                 th:value="${country}"
                                                                                 th:text="${country}"

@@ -33,8 +33,8 @@
                                                             </tr>
                                                             </thead>
                                                             <tbody>
-                                                            <tr th:each="invoiceProduct,comStat : ${invoiceProducts}">
-                                                                <td th:text="${comStat.count}"></td>
+                                                            <tr th:each="invoiceProduct: ${invoiceProducts}">
+                                                                <td th:text="${invoiceProducts.indexOf(invoiceProduct)+1}"></td>
                                                                 <td th:text="${invoiceProduct.invoice.invoiceNo}"></td>
                                                                 <td th:text="${#temporals.format(invoiceProduct.invoice.date, 'MM/dd/yyyy')}"></td>
                                                                 <td th:text="${invoiceProduct.quantity}"></td>

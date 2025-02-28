@@ -27,10 +27,11 @@
                                                         Payment</p>
                                                     </h4>
                                                     <p>Thank you for using Stripe...</p>
-                                                    <form th:action="@{/payments/charge/{id}(id=${monthId})}" method='POST' id='checkout-form'>
-                                                        <input type='hidden' th:value='${monthId}' name='monthId'/>
-                                                        <input type='hidden' th:value='${payment.amount}' name='amount'/>
-                                                        <label>Price: $ <span th:text='${payment.amount}'></span></label>
+                                                    <form th:action="@{/payments/charge/{id}(id=${payment.id})}" method='POST' id='checkout-form'>
+                                                        <input type='hidden' th:value='${payment.id}' name='paymentId'/>
+                                                        <input type='hidden' th:value='${amount}' name='amount'/>
+                                                        <input type='hidden' th:value='${currency}' name='currency'/>
+                                                        <label>Price: $ <span th:text='${amount}'></span></label>
                                                         <script
                                                                 src='https://checkout.stripe.com/checkout.js'
                                                                 class='stripe-button'

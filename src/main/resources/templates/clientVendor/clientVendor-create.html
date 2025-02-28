@@ -21,7 +21,7 @@
                                         <div class="tab-content">
                                             <div class="tab-pane fade show active" id="account" role="tabpanel"
                                                  aria-labelledby="account-tab">
-                                                <form th:action="@{/clientVendors/create}"
+                                                <form id="clientVendorForm" th:action="@{/clientVendors/create}"
                                                       th:method="post" th:object="${newClientVendor}">
                                                     <div class="row justify-content-center">
                                                         <div class="col-12 col-md-4">
@@ -47,9 +47,7 @@
                                                                     <label>Type</label>
                                                                     <select id="clientVendorType" class="form-control"
                                                                             th:field="*{clientVendorType}">
-                                                                        <option th:if="${clientVendorTypes.size() >1}"
-                                                                                th:value="''" th:text="'Select'"
-                                                                                selected></option>
+
                                                                         <option th:each="clientVendorType:${clientVendorTypes}"
                                                                                 th:value="${clientVendorType}"
                                                                                 th:text="${clientVendorType.value}"></option>
@@ -105,7 +103,7 @@
                                                         <div class="col-12 col-md-4">
                                                             <div class="form-group">
                                                                 <div class="controls">
-                                                                    <label>Address</label>
+                                                                    <label>AddressLine1</label>
                                                                     <input type="text"
                                                                            th:field="*{address.addressLine1}"
                                                                            placeholder="Address"
@@ -123,7 +121,7 @@
                                                         <div class="col-12 col-md-4">
                                                             <div class="form-group">
                                                                 <div class="controls">
-                                                                    <label>Address</label>
+                                                                    <label>AddressLine2</label>
                                                                     <input type="text"
                                                                            th:field="*{address.addressLine2}"
                                                                            placeholder="Address"
@@ -223,11 +221,10 @@
                                                         <button class="btn btn-success mb-2 mb-sm-0 mr-sm-2"
                                                                 type="submit" name="action" value="save">Save
                                                         </button>
-                                                        <button class="btn btn-danger mb-2 mb-sm-0 mr-sm-2"
-                                                                type="reset">Reset
-                                                        </button>
+                                                        <button class="btn btn-danger mb-2 mb-sm-0 mr-sm-2" type="button" onclick="resetForm()">Reset</button>
                                                     </div>
                                                 </form>
+
                                             </div>
                                         </div>
                                     </div>
@@ -244,6 +241,11 @@
                                         List</a>
                                 </div>
                             </form>
+                            <script>
+                                function resetForm() {
+                                    document.getElementById('clientVendorForm').reset();
+                                }
+                            </script>
                         </div>
                     </div>
                 </div>
