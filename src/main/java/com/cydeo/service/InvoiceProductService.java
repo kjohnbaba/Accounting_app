@@ -1,27 +1,25 @@
 package com.cydeo.service;
 
 import com.cydeo.dto.InvoiceProductDto;
-
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+
 
 public interface InvoiceProductService {
-    InvoiceProductDto findById(Long id);
 
-    List<InvoiceProductDto> findAllByInvoiceIdAndCalculateTotalPrice(Long invoiceId);
+    InvoiceProductDto findInvoiceProductById(Long id);
 
-    InvoiceProductDto add(InvoiceProductDto invoiceProductDto, Long invoiceId);
+    Map<String,BigDecimal> findTotalCostAndTotalSalesAndTotalProfitAndLoss();
 
-    InvoiceProductDto delete(Long id);
+    List<InvoiceProductDto> getLast3InvoiceProductAndInvoices();
 
-    void updateQuantityInStockSale(Long invoiceId);
+    void saveInvoiceProduct(InvoiceProductDto dto);
 
-    void checkForLowQuantityAlert(Long invoiceId);
+    List<InvoiceProductDto> listAllByInvoiceIdAndCalculateTotalPrice(Long id);
 
-    void updateQuantityInStockPurchase(Long invoiceId);
+    void deleteInvoiceProduct(Long invoice, Long invoiceProduct);
 
-    void updateRemainingQuantityUponPurchaseApproval(Long invoiceId);
+    Map<String, BigDecimal> getMonthlyProfitLoss();
 
-    void calculateProfitOrLoss(Long invoiceId);
-
-    List<InvoiceProductDto> findAllApprovedInvoiceProductsOfCompany();
 }

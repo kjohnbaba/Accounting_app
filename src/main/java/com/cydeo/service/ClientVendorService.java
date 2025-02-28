@@ -1,25 +1,30 @@
 package com.cydeo.service;
 
 import com.cydeo.dto.ClientVendorDto;
+import com.cydeo.dto.CompanyDto;
 import com.cydeo.enums.ClientVendorType;
 
+import javax.validation.Valid;
 import java.util.List;
 
 public interface ClientVendorService {
 
     ClientVendorDto findById(Long id);
 
-    List<ClientVendorDto> listAllClientVendors();
+    List<ClientVendorDto> findAll();
 
-    List<ClientVendorDto> listByClientVendorType(ClientVendorType clientVendorType);
+    void update(Long id, ClientVendorDto clientVendorDto);
 
-    ClientVendorDto save(ClientVendorDto clientVendorDto);
+    void delete(Long clientVendorId);
 
-    void deleteClientVendorById(Long id);
+    void save(ClientVendorDto clientVendorDto);
 
-    ClientVendorDto update(ClientVendorDto clientVendorDto);
+    List<ClientVendorDto> getClientVendorListByLoggedInUser();
 
-    boolean isClientVendorExist(ClientVendorDto clientVendorDto);
+    List<ClientVendorDto> listAllByClientVendorType(ClientVendorType clientVendorType);
 
+    boolean isClientVendorExist(@Valid ClientVendorDto clientVendorDto);
 
+    CompanyDto getCompanyByLoggedInUser();
 }
+

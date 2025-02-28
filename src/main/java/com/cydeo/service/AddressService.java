@@ -1,9 +1,7 @@
 package com.cydeo.service;
 
-import java.util.List;
+import com.cydeo.entity.Address;
 
 public interface AddressService {
-
-    List<String> getCachedCountriesDto();
-
+    void save(Address address);
 }

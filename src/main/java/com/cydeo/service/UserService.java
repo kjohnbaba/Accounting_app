@@ -1,23 +1,25 @@
+
 package com.cydeo.service;
 
+import com.cydeo.dto.CompanyDto;
+import com.cydeo.dto.CurrencyRateDto;
 import com.cydeo.dto.UserDto;
+import org.springframework.stereotype.Service;
 
+import com.cydeo.entity.User;
 import java.util.List;
+
 
 public interface UserService {
 
     UserDto findByUsername(String username);
 
-    List<UserDto> listAllByLoggedInUser();
 
+    void save(UserDto userDto);
+    void update(UserDto userDto);
+    void deleteById(Long userId);
     UserDto findById(Long id);
-
-    UserDto update(UserDto userDto);
-
-    void deleteById(Long id);
-
-    UserDto save(UserDto user);
-
-    boolean isUsernameExist(UserDto userDto);
+    List<UserDto> listAllUsers();
+    Integer getNumberOfAdmins(CompanyDto companyDto);
 
 }

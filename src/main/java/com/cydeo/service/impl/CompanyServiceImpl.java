@@ -1,102 +1,115 @@
 package com.cydeo.service.impl;
 
+import com.cydeo.converter.CompanyDTOConverter;
 import com.cydeo.dto.CompanyDto;
 import com.cydeo.entity.Company;
+import com.cydeo.entity.User;
+import com.cydeo.entity.common.UserPrincipal;
 import com.cydeo.enums.CompanyStatus;
-import com.cydeo.exception.CompanyNotFoundException;
+import com.cydeo.exceptions.CompanyNotFoundException;
+import com.cydeo.exceptions.ResourceNotFoundException;
 import com.cydeo.repository.CompanyRepository;
+import com.cydeo.repository.UserRepository;
 import com.cydeo.service.CompanyService;
-import com.cydeo.service.SecurityService;
+import com.cydeo.service.UserService;
 import com.cydeo.util.MapperUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class CompanyServiceImpl implements CompanyService {
 
     private final CompanyRepository companyRepository;
+    private final UserRepository userRepository;
     private final MapperUtil mapperUtil;
-    private final SecurityService securityService;
 
-    public CompanyServiceImpl(CompanyRepository companyRepository, MapperUtil mapperUtil, SecurityService securityService) {
+    @Autowired
+    public CompanyServiceImpl(CompanyRepository companyRepository, UserRepository userRepository, MapperUtil mapperUtil) {
         this.companyRepository = companyRepository;
+        this.userRepository = userRepository;
         this.mapperUtil = mapperUtil;
-        this.securityService = securityService;
     }
 
     @Override
-    public CompanyDto getCompanyDtoByLoggedInUser() {
-        return securityService.getLoggedInUser().getCompany();
-    }
+    public Long getCompanyIdByLoggedInUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
 
-    @Override
-    public CompanyDto findById(Long id) {
-        Company company = companyRepository.findById(id).orElseThrow(CompanyNotFoundException::new);
-        return mapperUtil.convert(company, new CompanyDto());
-    }
-
-
-    @Override
-    public List<CompanyDto> listCompaniesByLoggedInUser() {
-        boolean isRootUser = securityService.getLoggedInUser()
-                .getRole().getDescription().equalsIgnoreCase("root user");
-        List<CompanyDto> list;
-        if (isRootUser) {
-            list = companyRepository.findAll()
-                    .stream()
-                    .filter(company -> company.getId() != 1)
-                    .sorted(Comparator.comparing(Company::getCompanyStatus).thenComparing(Company::getTitle))
-                    .map(each -> mapperUtil.convert(each, new CompanyDto()))
-                    .toList();
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
         } else {
-            Company company = companyRepository.findById(getCompanyDtoByLoggedInUser().getId()).orElseThrow();
-            list = List.of(mapperUtil.convert(company, new CompanyDto()));
+            username = principal.toString();
         }
-        return list;
+        User loggedInUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return loggedInUser.getCompany().getId();
+    }
+
+
+
+    @Override
+    public List<CompanyDto> getAllCompanies() {
+        List<Company> companies = companyRepository.findAll();
+        return companies.stream()
+                .filter(company -> !company.getId().equals(1L))
+                .sorted(Comparator.comparing(Company::getCompanyStatus)
+                        .thenComparing(Company::getTitle))
+                .map(company -> mapperUtil.convert(company, new CompanyDto()))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public CompanyDto save(CompanyDto companyDto) {
-        companyDto.setCompanyStatus(CompanyStatus.PASSIVE);
-        Company company = companyRepository.save(mapperUtil.convert(companyDto, new Company()));
+    public void updateCompany(Long id, CompanyDto companyDto) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
+
+        company.setTitle(companyDto.getTitle());
+        company.setPhone(companyDto.getPhone());
+        company.setWebsite(companyDto.getWebsite());
+        company.setAddress(mapperUtil.convert(companyDto.getAddress(), company.getAddress()));
+        companyRepository.save(company);
+    }
+
+
+    @Override
+    public CompanyDto findById(long id) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
         return mapperUtil.convert(company, new CompanyDto());
     }
 
-
     @Override
-    public CompanyDto update(CompanyDto companyDto) {
-        Company company = companyRepository.findById(companyDto.getId()).orElseThrow(CompanyNotFoundException::new);
-        Company updatedCompany = mapperUtil.convert(companyDto, new Company());
-        updatedCompany.setCompanyStatus(company.getCompanyStatus());
-        Company savedCompany = companyRepository.save(updatedCompany);
-        return mapperUtil.convert(savedCompany, new CompanyDto());
+    public void createCompany(CompanyDto companyDto) {
+        Company company = mapperUtil.convert(companyDto, new Company());
+        companyRepository.save(company);
     }
 
+    @Transactional
     @Override
-    public CompanyDto deactivate(Long id) {
-        Company company = companyRepository.findById(id).orElseThrow(CompanyNotFoundException::new);
-        company.setCompanyStatus(CompanyStatus.PASSIVE);
-        Company saved = companyRepository.save(company);
-        return mapperUtil.convert(saved, new CompanyDto());
-    }
+    public void activateCompany(Long id) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
 
-    @Override
-    public CompanyDto activate(Long id) {
-        Company company = companyRepository.findById(id).orElseThrow(CompanyNotFoundException::new);
         company.setCompanyStatus(CompanyStatus.ACTIVE);
-        Company saved = companyRepository.save(company);
-        return mapperUtil.convert(saved, new CompanyDto());
+        companyRepository.save(company);
+    }
+    @Transactional
+    @Override
+    public void deactivateCompany(Long id) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new CompanyNotFoundException("Company not found"));
+
+        company.setCompanyStatus(CompanyStatus.PASSIVE);
+        companyRepository.save(company);
     }
 
-    @Override
-    public boolean isTitleExist(CompanyDto companyDto) {
-        Company company = companyRepository.findByTitle(companyDto.getTitle()).orElse(null);
-        if (company == null) {
-            return false;
-        }
-        return !Objects.equals(companyDto.getId(), company.getId());
-    }
+
 }

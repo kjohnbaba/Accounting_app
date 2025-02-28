@@ -1,33 +1,35 @@
 package com.cydeo.service.impl;
 
+import com.cydeo.dto.CompanyDto;
 import com.cydeo.dto.UserDto;
 import com.cydeo.entity.User;
-import com.cydeo.enums.CompanyStatus;
-import com.cydeo.exception.UserNotFoundException;
+import com.cydeo.exceptions.UserNotFoundException;
 import com.cydeo.repository.UserRepository;
 import com.cydeo.service.SecurityService;
 import com.cydeo.service.UserService;
 import com.cydeo.util.MapperUtil;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
+
 
 @Service
 public class UserServiceImpl implements UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
     private final UserRepository userRepository;
     private final MapperUtil mapperUtil;
     private final SecurityService securityService;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository,
-                           MapperUtil mapperUtil,
-                           @Lazy SecurityService securityService,
-                           PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, MapperUtil mapperUtil, @Lazy SecurityService securityService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.mapperUtil = mapperUtil;
         this.securityService = securityService;
@@ -36,72 +38,80 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto findByUsername(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException(username));
         return mapperUtil.convert(user, new UserDto());
     }
 
     @Override
-    public List<UserDto> listAllByLoggedInUser() {
-        UserDto loggedInUser = securityService.getLoggedInUser();
-        List<User> userList;
-        if (loggedInUser.getRole().getId() == 1) { // "Root User"
-            userList = userRepository.findAllByRole_Id(2); // "Admin"
-        } else {
-            userList = userRepository.findAllByCompany_Id(loggedInUser.getCompany().getId());
-        }
-        return userList.stream()
-                .sorted(Comparator.comparing((User u) -> u.getCompany().getTitle())
-                        .thenComparing(u -> u.getRole().getDescription()))
-                .map(entity -> {
-                    UserDto dto = mapperUtil.convert(entity, new UserDto());
-                    dto.setOnlyAdmin(dto.getRole().getDescription().equals("Admin") && this.checkIfOnlyAdmin(dto));
-                    return dto;
-                })
-                .toList();
-    }
-
-    @Override
-    public UserDto findById(Long id) {
-        User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
-        UserDto dto = mapperUtil.convert(user, new UserDto());
-        dto.setOnlyAdmin(dto.getRole().getDescription().equals("Admin") && this.checkIfOnlyAdmin(dto));
-        return dto;
-    }
-
-    @Override
-    public UserDto save(UserDto user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        User user1 = mapperUtil.convert(user, new User());
-        user1.setEnabled(securityService.getLoggedInUser().getCompany().getCompanyStatus().equals(CompanyStatus.ACTIVE));
-        return mapperUtil.convert(userRepository.save(user1), new UserDto());
-    }
-
-    @Override
-    public UserDto update(UserDto userDto) {
-        User saved = userRepository.findById(userDto.getId()).orElseThrow(UserNotFoundException::new);
+    public void save(UserDto userDto) {
         User user = mapperUtil.convert(userDto, new User());
+        user.setEnabled(true);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setEnabled(saved.isEnabled());
-        return mapperUtil.convert(userRepository.save(user), new UserDto());
-    }
-
-    @Override
-    public void deleteById(Long id) {
-        User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
-        user.setIsDeleted(true);
-        user.setUsername(user.getUsername() + "-" + user.getId());
         userRepository.save(user);
     }
 
     @Override
-    public boolean isUsernameExist(UserDto userDto) {
-        User user = userRepository.findByUsername(userDto.getUsername()).orElse(null);
-        if (user == null) return false;
-        return !Objects.equals(userDto.getId(), user.getId());
+    public void update(UserDto userDto) {
+
+        User user = userRepository.findById(userDto.getId())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        User convertedUser = mapperUtil.convert(userDto, new User());
+        // convertedUser.setUsername(convertedUser.getUsername());
+        convertedUser.setId(user.getId());
+        userRepository.save(convertedUser);
     }
 
-    private boolean checkIfOnlyAdmin(UserDto userDto) {
-        int countAdmins = userRepository.countAllByCompany_IdAndRole_Description(userDto.getCompany().getId(), "Admin");
-        return countAdmins == 1;
+    @Override
+    public void deleteById(Long userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isPresent()) {
+            user.orElseThrow().setUsername(hashEmail(user.get().getUsername()));
+            user.orElseThrow().setIsDeleted(true);
+            userRepository.save(user.get());
+        }
     }
+
+
+//        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
+//        userRepository.delete(user);
+
+    private String hashEmail(String email){
+        return "##"+email+"##";
+
+    }
+
+    @Override
+    public UserDto findById(Long id) {
+        User user = userRepository.findById(id).get();
+        return mapperUtil.convert(user, new UserDto());
+    }
+
+    @Override
+    public List<UserDto> listAllUsers() {
+        String loggedInUserRole = securityService.getLoggedInUser().getRole().getDescription();
+
+        if (loggedInUserRole.equals("Root User")) {
+
+            return userRepository.findAllByIsDeletedFalse().stream().filter(user -> user.getRole().getDescription().equals("Admin"))
+                    .sorted(Comparator.comparing(user -> user.getCompany().getTitle()))
+                    .map(user -> mapperUtil.convert(user, new UserDto())).collect(Collectors.toList());
+
+        } else{
+
+            Long companyId = securityService.getLoggedInUser().getCompany().getId();
+
+            return userRepository.findAllByCompany_IdAndIsDeletedFalse(companyId).stream()
+                    .sorted(Comparator.comparing(user -> user.getRole().getDescription()))
+                    .map(user -> mapperUtil.convert(user, new UserDto())).collect(Collectors.toList());
+        }
+    }
+
+
+    @Override
+    public Integer getNumberOfAdmins(CompanyDto companyDto) {
+        List<User> allAdminUsersInCompany = userRepository.findAllByCompany_IdAndRole_IdAndIsDeletedFalse(companyDto.getId(), 2L);
+
+        return allAdminUsersInCompany.size();
+    }
+
 }

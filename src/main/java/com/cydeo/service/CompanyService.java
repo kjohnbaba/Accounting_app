@@ -6,19 +6,17 @@ import java.util.List;
 
 public interface CompanyService {
 
-    CompanyDto getCompanyDtoByLoggedInUser();
+    Long getCompanyIdByLoggedInUser();
 
-    CompanyDto findById(Long id);
+    List<CompanyDto> getAllCompanies();
 
-    CompanyDto save(CompanyDto companyDto);
+    void updateCompany(Long id, CompanyDto companyDto);
 
-    CompanyDto update(CompanyDto companyDto);
+    CompanyDto findById(long l);
 
-    CompanyDto deactivate(Long id);
+    public void createCompany(CompanyDto companyDto);
 
-    CompanyDto activate(Long id);
+    void activateCompany(Long id);
 
-    List<CompanyDto> listCompaniesByLoggedInUser();
-
-    boolean isTitleExist(CompanyDto companyDto);
+    void deactivateCompany(Long id);
 }

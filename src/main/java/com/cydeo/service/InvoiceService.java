@@ -1,33 +1,38 @@
 package com.cydeo.service;
 
+import com.cydeo.dto.ClientVendorDto;
 import com.cydeo.dto.InvoiceDto;
+import com.cydeo.dto.InvoiceProductDto;
 import com.cydeo.enums.InvoiceType;
-
-import java.math.BigDecimal;
 import java.util.List;
 
 
 public interface InvoiceService {
+
     InvoiceDto findById(Long id);
 
-    InvoiceDto update(InvoiceDto invoiceDto);
+    List<InvoiceDto> listInvoices(InvoiceType type);
 
-    BigDecimal sumTotal(InvoiceType invoiceType);
+    void deleteInvoice(Long id) throws Exception;
 
-    InvoiceDto approve(Long invoiceId);
+    void approvePurchaseInvoice(Long id) throws Exception;
 
-    void deleteInvoice(Long id);
+    void approveSaleInvoice(Long id) throws Exception;
 
-    List<InvoiceDto> findLastThreeApprovedInvoice();
+    void savePurchaseInvoice(InvoiceDto invoiceDto);
 
-    BigDecimal sumProfitLoss();
+    void saveSaleInvoice(InvoiceDto invoiceDto);
 
-    List<InvoiceDto> listInvoices(InvoiceType invoiceType);
+    List<InvoiceDto> findInvoiceByClientVendorId(Long id);
 
-    InvoiceDto saveInvoice(InvoiceDto invoiceDto, InvoiceType invoiceType);
+    InvoiceDto findApprovedInvoiceAndCalculateSubtotalTaxGrandTotal(Long id) throws Exception;
 
-    InvoiceDto generateNewInvoiceDto(InvoiceType invoiceType);
+    List<InvoiceProductDto> findInvoiceProductsAndCalculateTotal(Long Id) throws Exception;
 
-    InvoiceDto printInvoice(Long id);
+    InvoiceDto listInvoiceByInvoiceNo(String invoiceNo);
 
+    InvoiceDto createInvoiceByInvoiceType(InvoiceType invoiceType);
+
+    void updateInvoice(Long invoiceId, ClientVendorDto clientVendor);
 }
+

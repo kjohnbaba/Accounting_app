@@ -1,17 +1,13 @@
 package com.cydeo.service;
 
-
 import com.cydeo.dto.PaymentDto;
-import com.cydeo.dto.common.ChargeRequest;
-import com.stripe.exception.*;
+import com.cydeo.entity.Payment;
 
 import java.util.List;
+import java.util.Map;
 
 public interface PaymentService {
-
-    List<PaymentDto> getAllPaymentsByYear(int year);
-
-    PaymentDto getPaymentById(Long id);
-
-    PaymentDto charge(ChargeRequest chargeRequest, Long id) throws APIConnectionException, APIException, AuthenticationException, InvalidRequestException, CardException;
+    Map<Integer, List<PaymentDto>> getAllPaymentsGroupedByYear();
+    PaymentDto findById(long parseLong);
+    void changePaymentStatus(long id);
 }
