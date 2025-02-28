@@ -1,20 +1,19 @@
 package com.cydeo.repository;
 
-
+import com.cydeo.dto.ProductDto;
 import com.cydeo.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
+
+
+@Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    @Query("SELECT p FROM Product p WHERE p.name = ?1 AND p.category.company.id = ?2")
-    Product findProductByNameAndCompanyId(String name, Long companyId);
-
-    @Query("SELECT p FROM Product p WHERE p.category.company.id = ?1")
-    List<Product> findByCompanyId(Long companyId);
-
-
+    List<Product> findAllProductsByCategory_Company_Id(Long id);
+    List<Product> findAllByIsDeletedFalse();
+    Product findByIdAndAndIsDeletedFalse(Long id);
+    Product findProductById(Long id);
 }
