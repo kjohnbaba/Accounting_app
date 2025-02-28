@@ -1,38 +1,33 @@
 package com.cydeo.aspect;
 
+import com.cydeo.annotations.ExecutionTime;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
+
+import java.util.logging.Logger;
 
 @Aspect
 @Component
 @Slf4j
 public class PerformanceAspect {
 
-    @Pointcut("@annotation(com.cydeo.annotation.ExecutionTime)")
-    public void executionTimePC() {
-    }
+    private static final Logger logger = Logger.getLogger(PerformanceAspect.class.getName());
 
-    @Around("executionTimePC()")
-    public Object aroundAnyExecutionTimeAdvice(ProceedingJoinPoint proceedingJoinPoint) {
+    @Around("@annotation(executionTime)")
+    public Object measure(ProceedingJoinPoint joinPoint, com.cydeo.annotations.ExecutionTime executionTime) throws Throwable {
 
-        long beforeTime = System.currentTimeMillis();
-        Object result = null;
-        log.info("Method: {} - Execution starts:", proceedingJoinPoint.getSignature());
+        String methodName = joinPoint.getSignature().getName();
+        logger.info("Execution Started for method: {}" + methodName);
 
-        try {
-            result = proceedingJoinPoint.proceed();
-        } catch (Throwable e) {
-            log.error("Error occurred during execution: {}", e.getMessage());
-            log.info("Execution time logger cannot proceed with class: {}", proceedingJoinPoint.getSourceLocation().getFileName());        }
+        long startTime = System.currentTimeMillis();
+        Object result = joinPoint.proceed();
+        long endTime = System.currentTimeMillis();
 
-        long afterTime = System.currentTimeMillis();
-
-        log.info("Method: {} - Time taken to execute: {} ms"
-                , proceedingJoinPoint.getSignature().toShortString(), (afterTime - beforeTime));
+        long duration = endTime - startTime;
+        logger.info("Execution finished for method: {}. Time taken:{} ms" + duration + executionTime);
 
         return result;
     }

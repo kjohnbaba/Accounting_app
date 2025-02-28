@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .authorizeRequests()
                 .antMatchers("/users/**").hasAnyAuthority("Root User", "Admin")
                 .antMatchers("/companies/**").hasAnyAuthority("Root User")
-                .antMatchers("/", "/login", "/fragments", "/assets/**", "/img/**").permitAll()
+                .antMatchers("/", "/login", "/fragments/**", "/assets/**", "/img/**", "images/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
@@ -47,7 +47,7 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/login")
                 .and()
                 .rememberMe()
-                .tokenValiditySeconds(10*86400)
+                .tokenValiditySeconds(86400)
                 .key("cydeo")
                 .userDetailsService(securityService)
                 .and().build();

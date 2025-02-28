@@ -1,65 +1,65 @@
 package com.cydeo.aspect;
 
-import com.cydeo.dto.UserDto;
 import com.cydeo.service.CompanyService;
 import com.cydeo.service.SecurityService;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.After;
-import org.aspectj.lang.annotation.AfterThrowing;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
 
 @Aspect
 @Component
-@Slf4j
-@AllArgsConstructor
 public class LoggingAspect {
 
-    private final SecurityService securityService;
-    private final CompanyService companyService;
+    SecurityService securityService;
+    CompanyService companyService;
 
-    // catch if CompanyService activate() or deactivate() method is executed
-    // (..) : method parameters are not important
-    @Pointcut("execution(* com.cydeo.service.CompanyService.activate(..)) " +
-            "|| execution(* com.cydeo.service.CompanyService.deactivate(..))")
-    public void anyCompanyActivationDeactivation() {
+    public LoggingAspect( SecurityService securityService, CompanyService companyService) {
+        this.securityService = securityService;
+        this.companyService = companyService;
     }
 
-    // if anyCompanyActivationDeactivation() method (above) is executed,
-    // log the method name (activate / deactivate), company name of the activated / deactivated,
-    // firstname, lastname and username of the logged-in user after that method executed
-//    @AfterReturning(value = "anyCompanyActivationDeactivation()", returning = "dto")
-//    public void afterAnyCompanyActivation(JoinPoint joinPoint, CompanyDto dto) {
-//        log.info("Method: {}, Company Name:{}, User -> FirstName: {}, LastName: {}, Username: {}",
-//                joinPoint.getSignature().toShortString(),
-//                dto.getTitle(),
-//                securityService.getLoggedInUser().getFirstname(),
-//                securityService.getLoggedInUser().getLastname(),
-//                securityService.getLoggedInUser().getUsername());
-//    }
+    private static final Logger logger = LoggerFactory.getLogger(LoggingAspect.class);
 
-    @After(value = "anyCompanyActivationDeactivation()")
-    public void afterAnyCompanyActivation(JoinPoint joinPoint) {
-        Long id = (Long) joinPoint.getArgs()[0];
-        UserDto loggedInUser = securityService.getLoggedInUser();
-        log.info("Method: {}, Company Name:{}, User -> FirstName: {}, LastName: {}, Username: {}",
-                joinPoint.getSignature().toShortString(),
-                companyService.findById(id).getTitle(),
-                loggedInUser.getFirstname(),
-                loggedInUser.getLastname(),
-                loggedInUser.getUsername());
+    @Pointcut("execution(* com.cydeo.service.CompanyService.activateCompany(..)) || execution(* com.cydeo.service.CompanyService.deactivateCompany(..) )")
+    public void companyActivationPointcut() {
     }
 
-    @Pointcut("execution(* com.cydeo..*(..))")
-    private void anyRuntimeException() {
+    @After("companyActivationPointcut()")
+    public void logAfterCompanyActivation(JoinPoint joinPoint) {
+        String methodName = joinPoint.getSignature().getName();
+        Object[] args = joinPoint.getArgs();
+        Long companyId = (args.length > 0 && args[0] != null) ? (Long) args[0] : null;
+        String companyName = companyService.findById(companyId).getTitle();
+
+        String username = securityService.getLoggedInUser().getUsername();
+        String firstname = securityService.getLoggedInUser().getFirstname();
+        String lastname = securityService.getLoggedInUser().getLastname();
+
+        logger.info("Method {} executed for company: {} by user: {} {} email: {}", methodName, companyName, firstname, lastname, username);
+
     }
 
-    @AfterThrowing(pointcut = "anyRuntimeException()", throwing = "exception")
-    public void afterThrowingControllerAdvice(JoinPoint joinPoint, RuntimeException exception) {
-        log.error("After Throwing -> Method: {} - Exception: {} - Message: {}",
-                joinPoint.getSignature().toShortString(), exception.getClass().getSimpleName(), exception.getMessage());
+
+    @Pointcut("execution(* com.cydeo..*(..)) throws RuntimeException")
+    public void runtimeExceptionPointcut() {
     }
+
+    @Around("@annotation(com.cydeo.annotations.ExecutionTime)")
+    public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
+        logger.error("Exception BEFORE method: {}  -> Param: {}", joinPoint.getSignature().toLongString(), joinPoint.getKind());
+        Object result;
+        result = joinPoint.proceed();
+        logger.error("Exception AFTER method: {}  -> Param: {}", joinPoint.getSignature().toShortString(), result);
+        return result;
+    }
+
+    @AfterThrowing(pointcut = "runtimeExceptionPointcut()", throwing = "ex")
+    public void logAfterThrowing(JoinPoint joinPoint, RuntimeException ex) {
+        logger.error("Exception method: -> {}. Exception: -> {}. Message: -> ({})", joinPoint.getSignature().getName(), ex.getClass().getSimpleName(), ex.getMessage());
+    }
+
 }
