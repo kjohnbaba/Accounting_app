@@ -101,4 +101,10 @@ Follow the steps below to get the _Demo Application_ up and running:
 - **Lazy Loading:**
     - Be cautious when using lazy loading with Hibernate to avoid _N+1 problems_. (Lazy loading can lead to inefficient database queries, especially in scenarios where multiple related entities are loaded separately. Consider using eager loading or fetching strategies to optimize data retrieval.)
 
+
+
+
 ---
+
+
+
